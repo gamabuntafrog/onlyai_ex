@@ -1,0 +1,43 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@config": ["config/index"],
+      "@config/*": ["config/*"],
+      "@controllers/*": ["controllers/*"],
+      "@services/*": ["services/*"],
+      "@repositories/*": ["repositories/*"],
+      "@middleware/*": ["middleware/*"],
+      "@routes/*": ["routes/*"],
+      "@models/*": ["models/*"],
+      "@typings/*": ["types/*"],
+      "@constants/*": ["constants/*"],
+      "@errors/*": ["errors/*"],
+      "@helpers/*": ["helpers/*"],
+      "@validators/*": ["validators/*"],
+      "@mappers/*": ["mappers/*"],
+      "@db/*": ["db/*"],
+      "@utilities/*": ["utilities/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"],
+  "ts-node": {
+    "esm": true
+  }
+}
+

@@ -1,0 +1,22 @@
+// Authentication error codes
+export const ERROR_CODES = {
+  // Authentication errors
+  INVALID_CREDENTIALS: "INVALID_CREDENTIALS",
+  NOT_AUTHENTICATED: "NOT_AUTHENTICATED",
+  NO_TOKEN: "NO_TOKEN",
+  INVALID_TOKEN: "INVALID_TOKEN",
+  TOKEN_EXPIRED: "TOKEN_EXPIRED",
+
+  // User errors
+  USER_ALREADY_EXISTS: "USER_ALREADY_EXISTS",
+  USER_NOT_FOUND: "USER_NOT_FOUND",
+
+  // Validation errors
+  VALIDATION_ERROR: "VALIDATION_ERROR",
+
+  // Server errors
+  INTERNAL_SERVER_ERROR: "INTERNAL_SERVER_ERROR",
+  NOT_FOUND: "NOT_FOUND",
+} as const;
+
+export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];

@@ -1,0 +1,14 @@
+name: Backend Template
+description: A production-ready Express.js backend template with TypeScript, MongoDB, authentication, and best practices
+icon: 🚀
+topics:
+  - express
+  - typescript
+  - mongodb
+  - authentication
+  - jwt
+  - backend
+  - nodejs
+  - template
+  - boilerplate
+
