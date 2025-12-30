@@ -57,7 +57,10 @@ export const verifyQStashSignature = factory.createMiddleware(
       await next();
     } catch (error) {
       logger.error("QStash signature verification failed", { error });
-      throw error;
+      throw new UnauthorizedError(
+        "QStash signature verification failed",
+        ERROR_CODES.INVALID_TOKEN
+      );
     }
   }
 );
