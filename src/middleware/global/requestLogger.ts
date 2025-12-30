@@ -1,11 +1,13 @@
-import { Context, Next } from "hono";
+import { createFactory } from "hono/factory";
 import logger from "@utilities/logger";
+
+const factory = createFactory();
 
 /**
  * Request logging middleware using pino logger
  * Logs all requests with method, URL, status code, and duration using structured logging
  */
-export async function requestLogger(c: Context, next: Next): Promise<Response> {
+export const requestLogger = factory.createMiddleware(async (c, next) => {
   const startTime = Date.now();
   const method = c.req.method;
   const url = c.req.url;
@@ -29,6 +31,4 @@ export async function requestLogger(c: Context, next: Next): Promise<Response> {
   } else {
     logger.info(logData, `${method} ${url} ${statusCode}`);
   }
-
-  return c.res;
-}
+});
