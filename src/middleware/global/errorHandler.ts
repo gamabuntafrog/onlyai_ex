@@ -3,6 +3,7 @@ import { AppError } from "@errors/AppError";
 import config from "@config";
 import logger from "@utilities/logger";
 import { ERROR_CODES } from "@constants/errorCodes";
+import { ContentfulStatusCode } from "hono/utils/http-status";
 
 export function errorHandler(err: Error, c: Context): Response {
   // Prepare error context for logging
@@ -53,7 +54,7 @@ export function errorHandler(err: Error, c: Context): Response {
       }),
     };
 
-    return c.json(errorResponse, err.statusCode);
+    return c.json(errorResponse, err.statusCode as ContentfulStatusCode);
   }
 
   // Handle unexpected errors
