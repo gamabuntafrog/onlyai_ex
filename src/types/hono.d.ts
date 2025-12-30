@@ -6,6 +6,7 @@ export type Variables = {
     id: string;
     email: string;
   };
+  rawBody?: string;
 };
 
 // AuthContext extends Hono's Context with Variables

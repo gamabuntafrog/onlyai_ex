@@ -24,6 +24,18 @@ class Config {
   // CORS configuration
   public readonly FRONTEND_ORIGINS: string[];
 
+  // Redis configuration
+  public readonly REDIS_URL: string;
+  public readonly REDIS_TOKEN: string;
+
+  // QStash configuration
+  public readonly QSTASH_URL: string;
+  public readonly QSTASH_CURRENT_SIGNING_KEY: string;
+  public readonly QSTASH_NEXT_SIGNING_KEY: string;
+
+  // OpenAI configuration
+  public readonly OPENAI_API_KEY: string;
+
   private static instance: Config;
 
   private constructor() {
@@ -58,6 +70,19 @@ class Config {
     this.FRONTEND_ORIGINS = frontendOriginsEnv
       .split(",")
       .map((origin) => origin.trim());
+
+    // Redis
+    this.REDIS_URL = process.env.REDIS_URL || "";
+    this.REDIS_TOKEN = process.env.REDIS_TOKEN || "";
+
+    // QStash
+    this.QSTASH_URL = process.env.QSTASH_URL || "https://qstash.upstash.io";
+    this.QSTASH_CURRENT_SIGNING_KEY =
+      process.env.QSTASH_CURRENT_SIGNING_KEY || "";
+    this.QSTASH_NEXT_SIGNING_KEY = process.env.QSTASH_NEXT_SIGNING_KEY || "";
+
+    // OpenAI
+    this.OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 
     // Validate required environment variables
     this.validate();

@@ -31,7 +31,10 @@
       "@validators/*": ["validators/*"],
       "@mappers/*": ["mappers/*"],
       "@db/*": ["db/*"],
-      "@utilities/*": ["utilities/*"]
+      "@utilities/*": ["utilities/*"],
+      "@integrations/*": ["integrations/*"],
+      "@stores/*": ["stores/*"],
+      "@adapters/*": ["adapters/*"]
     }
   },
   "include": ["src/**/*"],
@@ -40,4 +43,3 @@
     "esm": true
   }
 }
-
