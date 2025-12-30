@@ -9,7 +9,7 @@ export default function createUserRoutes(
   const app = new Hono<{ Variables: Variables }>();
 
   // Protected routes
-  app.get("/me", authenticate, (c) => userController.getCurrentUser(c));
+  app.get("/me", authenticate, ...userController.getCurrentUser);
 
   return app;
 }

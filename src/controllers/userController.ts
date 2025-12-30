@@ -1,7 +1,10 @@
-import { AuthContext } from "@typings/hono";
+import { createFactory } from "hono/factory";
+import { Variables } from "@typings/hono";
 import UserService from "@services/userService";
 import { UnauthorizedError } from "@errors/AppError";
 import { ERROR_CODES } from "@constants/errorCodes";
+
+const factory = createFactory<{ Variables: Variables }>();
 
 class UserController {
   constructor(private readonly userService: UserService) {}
@@ -9,7 +12,7 @@ class UserController {
   /**
    * Get current authenticated user
    */
-  public async getCurrentUser(c: AuthContext): Promise<Response> {
+  public getCurrentUser = factory.createHandlers(async (c) => {
     const user = c.get("user");
 
     if (!user?.id) {
@@ -27,7 +30,7 @@ class UserController {
         user: userData,
       },
     });
-  }
+  });
 }
 
 export default UserController;

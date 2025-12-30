@@ -8,9 +8,9 @@ export default function createAuthRoutes(
   const app = new Hono<{ Variables: Variables }>();
 
   // Public routes
-  app.post("/register", (c) => authController.register(c));
-  app.post("/login", (c) => authController.login(c));
-  app.post("/refresh", (c) => authController.refresh(c));
+  app.post("/register", ...authController.register);
+  app.post("/login", ...authController.login);
+  app.post("/refresh", ...authController.refresh);
 
   return app;
 }
