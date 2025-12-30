@@ -1,241 +1,424 @@
-# Backend Template
+# OnlyAI - Асинхронна AI-фіча для аналізу особистості
 
-> 🚀 A production-ready Express.js backend template with TypeScript, PostgreSQL (Sequelize), authentication, and best practices.
+Backend застосунок для асинхронного аналізу особистості з використанням OpenAI API. Застосунок реалізований на Node.js з TypeScript, використовує Hono framework, PostgreSQL для зберігання користувачів, Redis для тимчасового зберігання стану аналізу, та QStash для асинхронної обробки завдань.
 
-This is a GitHub template repository. Click "Use this template" to create a new repository from this template.
+## 🚀 Основні можливості
 
-## 📋 What's Included
+- ✅ Асинхронна обробка аналізу через QStash
+- ✅ Зберігання стану аналізу в Redis з автоматичним TTL
+- ✅ JWT авторизація з refresh tokens
+- ✅ Валідація даних через Zod
+- ✅ Структурована обробка помилок
+- ✅ Idempotency для захисту від дублікатів
+- ✅ Retry logic для OpenAI API
+- ✅ TypeScript з повною типобезпекою
 
-- ✅ Express.js with TypeScript
-- ✅ PostgreSQL with Sequelize ORM
-- ✅ JWT-based authentication (access + refresh tokens)
-- ✅ Password hashing with bcryptjs
-- ✅ Request validation with Zod
-- ✅ Structured logging with Pino
-- ✅ CORS configuration
-- ✅ Error handling middleware
-- ✅ Request logging middleware
-- ✅ Conventional commits with commitlint
-- ✅ Git hooks with Husky
-- ✅ ESLint + Prettier for code quality
+## 📋 Технологічний стек
 
-## 🚀 Quick Start
+- **Framework**: [Hono](https://hono.dev/) - швидкий web framework для Node.js
+- **Runtime**: Node.js 22+
+- **Language**: TypeScript
+- **Database**: PostgreSQL 16+ з Sequelize ORM
+- **Cache/State**: Redis (Upstash) для тимчасового зберігання стану
+- **Queue**: QStash (Upstash) для асинхронної обробки
+- **AI**: OpenAI API для генерації аналізу
+- **Validation**: Zod для runtime валідації
+- **Logging**: Pino для структурованого логування
 
-### Prerequisites
+## 🏗️ Архітектура
 
-- **Node.js 22.x** or higher
-- **npm 10.x** or higher
+Проект організований за принципом шарової архітектури:
 
-You can use [nvm](https://github.com/nvm-sh/nvm) to manage Node.js versions:
-```bash
-nvm install 22
-nvm use 22
+```
+Controllers → Services → Repositories/Stores → Database/External APIs
 ```
 
-Or if you have `.nvmrc` file, simply run:
-```bash
-nvm use
+Детальну документацію архітектури дивіться в [ARCHITECTURE_DOC.md](./ARCHITECTURE_DOC.md)
+
+## 📁 Структура проекту
+
+```
+src/
+├── adapters/          # Адаптери для зовнішніх сервісів (Redis)
+├── config/           # Конфігурація застосунку
+├── constants/        # Константи (коди помилок)
+├── controllers/      # HTTP контролери
+├── db/              # База даних (моделі, міграції)
+├── errors/          # Кастомні класи помилок
+├── helpers/         # Допоміжні функції
+├── integrations/    # Інтеграції (OpenAI, QStash)
+├── middleware/      # Middleware (auth, CORS, error handling)
+├── mappers/         # Маппінг та валідація даних
+├── repositories/    # Репозиторії для доступу до БД
+├── routes/          # Маршрути API
+├── services/        # Бізнес-логіка
+├── stores/          # Domain stores (AnalysisStateStore)
+├── types/           # TypeScript типи
+├── utilities/       # Утиліти (logger)
+└── validators/      # Zod схеми валідації
 ```
 
-### Installation Steps
+## 🛠️ Встановлення та запуск
 
-1. **Create a new repository** from this template by clicking "Use this template" on GitHub
-2. **Clone your new repository**:
-   ```bash
-   git clone <your-repo-url>
-   cd <your-repo-name>
-   ```
-3. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-4. **Set up environment variables**:
-   ```bash
-   cp .env.example .env
-   ```
-   Then edit `.env` with your configuration (PostgreSQL `DATABASE_URL`, JWT secrets, etc.)
-5. **Start developing**:
-   ```bash
-   npm run dev
-   ```
+### Вимоги
 
-For more detailed information, see [TEMPLATE.md](./TEMPLATE.md).
+- Node.js >= 22.0.0
+- npm >= 10.0.0
+- PostgreSQL 16+ (або Docker)
+- Redis (Upstash або локальний)
+- QStash (Upstash)
 
-## Installation
+### Крок 1: Клонування репозиторію
 
-### Requirements
+```bash
+git clone <repository-url>
+cd onlyai_ex
+```
 
-- **Node.js 22.x** or higher
-- **npm 10.x** or higher
-
-### Install Dependencies
+### Крок 2: Встановлення залежностей
 
 ```bash
 npm install
 ```
 
-> **Note:** If you're using [nvm](https://github.com/nvm-sh/nvm), you can run `nvm use` to automatically switch to the correct Node.js version (specified in `.nvmrc`).
+### Крок 3: Налаштування environment variables
 
-## Configuration
+Створіть файл `.env` в корені проекту:
 
-1. Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
+```env
+# Server
+PORT=3000
+NODE_ENV=development
+
+# Database
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/palz
+# Або окремо:
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=palz
+POSTGRES_SSL=false
+
+# JWT
+JWT_SECRET=your-secret-key-change-in-production
+ACCESS_TOKEN_EXPIRES_IN=1h
+REFRESH_TOKEN_EXPIRES_IN=7d
+REFRESH_TOKEN_SECRET=your-secret-refresh-key-change-in-production
+
+# Logger
+LOG_LEVEL=debug
+
+# CORS
+FRONTEND_ORIGIN=http://localhost:3001
+
+# Redis (Upstash)
+REDIS_URL=https://your-redis.upstash.io
+REDIS_TOKEN=your-redis-token
+
+# QStash (Upstash)
+QSTASH_URL=https://qstash.upstash.io
+QSTASH_TOKEN=your-qstash-token
+QSTASH_CURRENT_SIGNING_KEY=your-current-signing-key
+QSTASH_NEXT_SIGNING_KEY=your-next-signing-key
+
+# OpenAI
+OPENAI_API_KEY=your-openai-api-key
+
+# Base URL для webhook (для production)
+BASE_URL=https://your-domain.com
 ```
 
-2. Update `.env` with your PostgreSQL connection string (`DATABASE_URL`) and JWT secrets.
-   - You can also configure `ACCESS_TOKEN_EXPIRES_IN`, `REFRESH_TOKEN_EXPIRES_IN`, and `REFRESH_TOKEN_SECRET` for more granular control over token lifetimes.
+### Крок 4: Запуск інфраструктури (Docker)
 
-## Running the Server
-
-### Development mode
 ```bash
+# Запуск PostgreSQL
+npm run docker:infra:up
+
+# Зупинка
+npm run docker:infra:down
+```
+
+Або встановіть PostgreSQL локально та налаштуйте підключення.
+
+### Крок 5: Запуск міграцій
+
+```bash
+npm run migrate
+```
+
+### Крок 6: Запуск сервера
+
+```bash
+# Development режим (з hot reload)
 npm run dev
-```
 
-### Production mode
-```bash
+# Production режим
 npm run build
 npm start
 ```
 
-## API Endpoints
+Сервер буде доступний на `http://localhost:3000`
 
-### Public Routes
+## 📚 API Документація
 
-#### Register
-- **POST** `/api/auth/register`
-- Body: `{ "email": "user@example.com", "password": "password123" }`
-- Response:
-  ```json
-  {
-    "success": true,
-    "message": "User registered successfully",
-    "data": {
-      "token": "<access-token>",
-      "accessToken": "<access-token>",
-      "refreshToken": "<refresh-token>",
-      "user": {
-        "id": "...",
-        "email": "user@example.com"
-      }
-    }
-  }
-  ```
+### Авторизація
 
-#### Login
-- **POST** `/api/auth/login`
-- Body: `{ "email": "user@example.com", "password": "password123" }`
-- Response:
-  ```json
-  {
-    "success": true,
-    "message": "Login successful",
-    "data": {
-      "token": "<access-token>",
-      "accessToken": "<access-token>",
-      "refreshToken": "<refresh-token>",
-      "user": {
-        "id": "...",
-        "email": "user@example.com"
-      }
-    }
-  }
-  ```
+#### Реєстрація користувача
+```http
+POST /api/auth/register
+Content-Type: application/json
 
-#### Refresh tokens
-- **POST** `/api/auth/refresh`
-- Body: `{ "refreshToken": "<refresh-token>" }`
-- Response:
-  ```json
-  {
-    "success": true,
-    "message": "Token refreshed successfully",
-    "data": {
-      "token": "<new-access-token>",
-      "accessToken": "<new-access-token>",
-      "refreshToken": "<new-refresh-token>",
-      "user": {
-        "id": "...",
-        "email": "user@example.com"
-      }
-    }
-  }
-  ```
-
-### Protected Routes
-
-#### Get Current User
-- **GET** `/api/auth/me`
-- Headers: `Authorization: Bearer <token>`
-- Response: `{ "success": true, "user": { "id": "...", "email": "..." } }`
-
-## Commit Convention
-
-This project uses [Conventional Commits](https://www.conventionalcommits.org/) to ensure consistent commit messages. Commit messages are automatically validated using commitlint and husky.
-
-### Commit Message Format
-
-```
-<type>(<scope>): <subject>
-
-<body>
-
-<footer>
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
 ```
 
-### Types
+#### Логін
+```http
+POST /api/auth/login
+Content-Type: application/json
 
-- `feat`: A new feature
-- `fix`: A bug fix
-- `docs`: Documentation only changes
-- `style`: Changes that do not affect the meaning of the code (formatting, missing semi-colons, etc.)
-- `refactor`: A code change that neither fixes a bug nor adds a feature
-- `perf`: A code change that improves performance
-- `test`: Adding missing tests or correcting existing tests
-- `build`: Changes that affect the build system or external dependencies
-- `ci`: Changes to CI configuration files and scripts
-- `chore`: Other changes that don't modify src or test files
-- `revert`: Reverts a previous commit
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
 
-### Examples
+#### Оновлення токенів
+```http
+POST /api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+### Аналіз
+
+#### Створення аналізу
+```http
+POST /api/analyze
+Authorization: Bearer {accessToken}
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "age": 30,
+  "description": "A detailed description of the person"
+}
+```
+
+**Відповідь:**
+```json
+{
+  "requestId": "uuid-string"
+}
+```
+
+#### Отримання статусу аналізу
+```http
+GET /api/analyze/:requestId
+Authorization: Bearer {accessToken}
+```
+
+**Відповідь:**
+```json
+{
+  "requestId": "uuid-string",
+  "userId": "uuid-string",
+  "status": "done",
+  "input": {
+    "name": "John Doe",
+    "age": 30,
+    "description": "A detailed description"
+  },
+  "result": "Generated personality summary...",
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z"
+}
+```
+
+**Статуси:**
+- `queued` - аналіз в черзі
+- `processing` - аналіз обробляється
+- `done` - аналіз завершено (містить `result`)
+- `error` - сталася помилка (містить `error`)
+
+### Користувач
+
+#### Отримання поточного користувача
+```http
+GET /api/users/me
+Authorization: Bearer {accessToken}
+```
+
+Детальну документацію API дивіться в [FRONTEND_API_DOCS.md](./FRONTEND_API_DOCS.md)
+
+## 🔄 Флоу обробки аналізу
+
+1. **Користувач відправляє дані** → `POST /api/analyze`
+2. **Валідація даних** через Zod
+3. **Створення requestId** (UUID)
+4. **Збереження стану** в Redis зі статусом `queued`
+5. **Публікація завдання** в QStash з затримкою
+6. **Миттєва відповідь** користувачу з `requestId`
+7. **QStash викликає webhook** через заданий час
+8. **Отримання блокування** (idempotency)
+9. **Оновлення статусу** на `processing`
+10. **Виклик OpenAI API** з retry logic
+11. **Збереження результату** зі статусом `done` або `error`
+12. **Користувач отримує результат** через `GET /api/analyze/:requestId`
+
+## 🐳 Docker
+
+### Запуск з Docker Compose
 
 ```bash
-feat(auth): add password reset functionality
-fix(validator): remove password min length from login schema
-docs(readme): update API endpoint documentation
-style(errorHandler): switch to single quotes
-refactor(mapper): replace any types with proper TypeScript types
+# Запуск всіх сервісів
+docker-compose up -d
+
+# Перегляд логів
+docker-compose logs -f api
+
+# Зупинка
+docker-compose down
 ```
 
-### Validation
+### Збірка Docker образу
 
-Commit messages are automatically validated when you commit. If your commit message doesn't follow the conventional commit format, the commit will be rejected with an error message explaining what needs to be fixed.
+```bash
+docker build -t onlyai-backend .
+```
 
-## 📚 Technologies
+## 📝 Скрипти
 
-- **Express.js** - Web framework
-- **TypeScript** - Type-safe JavaScript
-- **PostgreSQL + Sequelize** - Relational database + ORM
-- **Zod** - Schema validation
-- **JWT** - Authentication tokens
-- **bcryptjs** - Password hashing
-- **Pino** - Structured logging
-- **Commitlint** - Commit message validation
-- **Husky** - Git hooks
+```bash
+# Development
+npm run dev              # Запуск з hot reload
 
-## 📝 Next Steps After Creating Your Repository
+# Build
+npm run build           # Компіляція TypeScript
 
-1. Update `package.json` with your project name and description
-2. Configure your environment variables in `.env`
-3. Customize the authentication logic if needed
-4. Add your domain-specific models, services, and routes
-5. Set up your CI/CD pipeline
-6. Configure your production deployment
+# Production
+npm start               # Запуск скомпільованого коду
 
-## 📖 Documentation
+# Database
+npm run migrate         # Запуск міграцій
+npm run migrate:rollback # Відкат останньої міграції
+npm run migrate:status  # Статус міграцій
+npm run migrate:create  # Створення нової міграції
 
-- See [TEMPLATE.md](./TEMPLATE.md) for detailed template information
-- See [.github/ISSUE_TEMPLATE](./.github/ISSUE_TEMPLATE/) for issue templates
-- See [.github/PULL_REQUEST_TEMPLATE.md](./.github/PULL_REQUEST_TEMPLATE.md) for PR template
+# Code Quality
+npm run lint            # Перевірка коду
+npm run lint:fix        # Автоматичне виправлення
+npm run format          # Форматування коду
+npm run format:check    # Перевірка форматування
+npm run typecheck       # Перевірка типів TypeScript
 
+# Docker
+npm run docker:infra:up   # Запуск інфраструктури
+npm run docker:infra:down # Зупинка інфраструктури
+```
+
+## 🔒 Безпека
+
+- JWT токени для авторизації
+- Хешування паролів через bcrypt
+- Валідація всіх вхідних даних через Zod
+- Перевірка підписів QStash webhook
+- CORS налаштування
+- Захист від SQL injection через Sequelize
+- Environment variables для секретів
+
+## 📊 Моніторинг
+
+### Health Check
+
+```http
+GET /health
+```
+
+**Відповідь:**
+```json
+{
+  "success": true,
+  "message": "Server is running"
+}
+```
+
+## 🐛 Обробка помилок
+
+Всі помилки повертаються у структурованому форматі:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message"
+  }
+}
+```
+
+Коди помилок дивіться в `src/constants/errorCodes.ts`
+
+## 🚀 Deployment
+
+### Railway
+
+Проект налаштований для deployment на Railway. Файл `railway.json` містить конфігурацію.
+
+### Environment Variables для Production
+
+Переконайтеся, що всі змінні оточення налаштовані в вашому хостинг-провайдері:
+
+- `DATABASE_URL` - URL PostgreSQL бази даних
+- `REDIS_URL` та `REDIS_TOKEN` - Upstash Redis
+- `QSTASH_TOKEN`, `QSTASH_CURRENT_SIGNING_KEY`, `QSTASH_NEXT_SIGNING_KEY` - QStash
+- `OPENAI_API_KEY` - OpenAI API ключ
+- `JWT_SECRET` та `REFRESH_TOKEN_SECRET` - Секрети для JWT
+- `BASE_URL` - URL вашого сервера (для webhook)
+
+## 📖 Додаткова документація
+
+- [Архітектура проекту](./ARCHITECTURE_DOC.md) - детальний опис архітектурних рішень
+- [API Документація](./FRONTEND_API_DOCS.md) - повна документація API
+- [Frontend Prompt](./FRONTEND_PROMPT.md) - інструкції для створення фронтенду
+- [Frontend Types](./FRONTEND_TYPES.ts) - TypeScript типи для фронтенду
+
+## 🤝 Contributing
+
+1. Fork проекту
+2. Створіть feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit зміни (`git commit -m 'Add some AmazingFeature'`)
+4. Push до branch (`git push origin feature/AmazingFeature`)
+5. Відкрийте Pull Request
+
+### Commit Convention
+
+Проект використовує [Conventional Commits](https://www.conventionalcommits.org/):
+
+- `feat:` - нова функція
+- `fix:` - виправлення бага
+- `docs:` - зміни в документації
+- `style:` - форматування коду
+- `refactor:` - рефакторинг
+- `test:` - додавання тестів
+- `chore:` - зміни в build процесі або інструментах
+
+## 📄 Ліцензія
+
+ISC
+
+## 👤 Автор
+
+[Ваше ім'я]
+
+## 🙏 Подяки
+
+- [Hono](https://hono.dev/) - швидкий web framework
+- [Upstash](https://upstash.com/) - managed Redis та QStash
+- [OpenAI](https://openai.com/) - AI API
