@@ -42,6 +42,9 @@ COPY --from=build /usr/src/app/dist ./dist
 # Copy entire src/ directory for tsx to run migrations (needed for imports)
 COPY --from=build /usr/src/app/src ./src
 
+# Copy tsconfig.json for tsx to resolve path aliases
+COPY --from=build /usr/src/app/tsconfig.json ./tsconfig.json
+
 # Expose port
 EXPOSE 3000
 
