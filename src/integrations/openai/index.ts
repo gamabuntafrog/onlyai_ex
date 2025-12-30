@@ -26,14 +26,20 @@ class OpenAIClient implements IOpenAIClient {
     try {
       const prompt = `Based on the following information, generate a short personality summary (2-3 sentences):
 
-Name: ${input.name}
-Age: ${input.age}
-Description: ${input.description}
-
-Provide a concise, insightful personality summary:`;
+      Name: ${input.name}
+      Age: ${input.age}
+      Description: ${input.description}
+      
+      Instructions:
+      - If the provided information is sufficient, create a personality summary based on the given details.
+      - If the information is insufficient, incomplete, or too vague, generate a creative and randomized personality summary that is interesting and believable.
+      - The summary should always be 2-3 sentences long, regardless of whether it's based on provided information or randomized.
+      - Make the randomized summary diverse and varied each time, incorporating different personality traits, interests, and characteristics.
+      
+      Provide a concise, insightful personality summary:`;
 
       const response = await this.client.responses.create({
-        model: "gpt-5-nano",
+        model: "gpt-5-mini",
         max_output_tokens: 1000,
         input: prompt,
       });
