@@ -5,6 +5,7 @@ import type { IOpenAIClient } from "@integrations/openai/IOpenAIClient";
 import { AnalysisInput, AnalysisState } from "@typings/analyze";
 import logger from "@utilities/logger";
 import config from "@config";
+import { AppError } from "@errors/AppError";
 
 class AnalyzeService {
   constructor(
@@ -31,7 +32,7 @@ class AnalyzeService {
     const webhookUrl = `${baseUrl}/webhooks/qstash/analyze`;
 
     // Publish delayed job to QStash (60 seconds delay)
-    await this.qstash.publishDelayedJob(webhookUrl, { requestId }, 60);
+    await this.qstash.publishDelayedJob(webhookUrl, { requestId }, 10);
 
     logger.info("Created analysis request", {
       requestId,
@@ -43,9 +44,32 @@ class AnalyzeService {
 
   /**
    * Get analysis state by request ID
+   * Returns user-friendly state without errorDetails, with error message if status is error
    */
-  public async getAnalysis(requestId: string): Promise<AnalysisState | null> {
-    return await this.stateStore.getState(requestId);
+  public async getAnalysis(
+    requestId: string
+  ): Promise<
+    (Omit<AnalysisState, "errorDetails"> & { error?: string }) | null
+  > {
+    const state = await this.stateStore.getState(requestId);
+
+    if (!state) {
+      return null;
+    }
+
+    // Remove errorDetails before returning to user
+    const { errorDetails: _errorDetails, ...userState } = state;
+
+    // Add user-friendly error message if status is error
+    if (state.status === "error") {
+      return {
+        ...userState,
+        error:
+          "An error occurred while processing your analysis request. Please try again later.",
+      };
+    }
+
+    return userState;
   }
 
   /**
@@ -95,17 +119,39 @@ class AnalyzeService {
         // Mark as done with result
         await this.stateStore.markDone(requestId, result);
 
-        logger.info("Analysis completed successfully", { requestId });
+        logger.info("Analysis completed successfully", {
+          requestId,
+          summaryLength: result.length,
+        });
       } catch (error) {
-        // Mark as error
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown error occurred";
+        // Extract technical details for developers
+        let errorDetails: Record<string, unknown> | undefined;
 
-        await this.stateStore.markError(requestId, errorMessage);
+        if (error instanceof AppError) {
+          errorDetails = {
+            code: error.code,
+            statusCode: error.statusCode,
+            technicalMessage: error.message,
+            ...error.details,
+          };
+        } else if (error instanceof Error) {
+          errorDetails = {
+            originalError: error.name,
+            technicalMessage: error.message,
+            stack: config.NODE_ENV === "development" ? error.stack : undefined,
+          };
+        } else {
+          errorDetails = {
+            originalError: String(error),
+          };
+        }
+
+        // Mark as error (user message will be generated based on status)
+        await this.stateStore.markError(requestId, errorDetails);
 
         logger.error("Analysis failed", {
           requestId,
-          error: errorMessage,
+          ...(errorDetails && { errorDetails }),
         });
       }
     } finally {

@@ -98,10 +98,11 @@ class AnalysisStateStore {
 
   /**
    * Mark analysis as error
+   * Only stores technical errorDetails, user message is generated based on status
    */
   public async markError(
     requestId: string,
-    errorMessage: string
+    errorDetails?: Record<string, unknown>
   ): Promise<void> {
     try {
       const state = await this.getState(requestId);
@@ -113,13 +114,16 @@ class AnalysisStateStore {
       const updatedState: AnalysisState = {
         ...state,
         status: "error",
-        error: errorMessage,
+        errorDetails,
         updatedAt: new Date().toISOString(),
       };
 
       await this._saveStateWithRemainingTtl(requestId, updatedState);
 
-      logger.debug("Marked analysis as error", { requestId });
+      logger.debug("Marked analysis as error", {
+        requestId,
+        hasErrorDetails: !!errorDetails,
+      });
     } catch (error) {
       logger.error("Failed to mark analysis as error", {
         requestId,

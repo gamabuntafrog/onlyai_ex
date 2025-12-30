@@ -12,7 +12,7 @@ export interface AnalysisState {
   status: AnalysisStatus;
   input: AnalysisInput;
   result?: string;
-  error?: string;
+  errorDetails?: Record<string, unknown>; // Technical details for developers, not exposed to users
   createdAt: string;
   updatedAt: string;
 }
