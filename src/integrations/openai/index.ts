@@ -32,21 +32,14 @@ Description: ${input.description}
 
 Provide a concise, insightful personality summary:`;
 
-      const response = await this.client.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        max_tokens: 150,
-        temperature: 0.7,
+      const response = await this.client.responses.create({
+        model: "gpt-5-nano",
+        max_output_tokens: 1000,
+        input: prompt,
       });
 
       const summary =
-        response.choices[0]?.message?.content?.trim() ||
-        "Unable to generate personality summary.";
+        response.output_text || "Unable to generate personality summary.";
 
       return summary;
     } catch (error) {
@@ -54,6 +47,7 @@ Provide a concise, insightful personality summary:`;
         error,
         input,
       });
+
       throw error;
     }
   }
