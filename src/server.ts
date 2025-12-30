@@ -1,4 +1,6 @@
-import express, { Application, Request, Response } from "express";
+import { Hono } from "hono";
+import { serve } from "@hono/node-server";
+import { Variables } from "@typings/hono";
 import config from "@config";
 import logger from "@utilities/logger";
 import sequelize from "@db/database";
@@ -15,13 +17,11 @@ import { corsMiddleware } from "@middleware/global/corsMiddleware";
 import { requestLogger } from "@middleware/global/requestLogger";
 import { ERROR_CODES } from "@constants/errorCodes";
 
-const app: Application = express();
+const app = new Hono<{ Variables: Variables }>();
 
 // Middleware
-app.use(corsMiddleware);
-app.use(requestLogger);
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use("*", corsMiddleware);
+app.use("*", requestLogger);
 
 // Initialize models with Sequelize instance
 const UserModel = initializeUserModel(sequelize);
@@ -42,32 +42,41 @@ const authRoutes = createAuthRoutes(authController);
 const userRoutes = createUserRoutes(userController);
 
 // Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
+app.route("/api/auth", authRoutes);
+app.route("/api/users", userRoutes);
 
 // Health check route
-app.get("/health", function (req: Request, res: Response) {
-  res.status(200).json({
+app.get("/health", (c) => {
+  return c.json({
     success: true,
     message: "Server is running",
   });
 });
 
 // 404 handler
-app.use(function (req: Request, res: Response) {
-  res.status(404).json({
-    success: false,
-    code: ERROR_CODES.NOT_FOUND,
-    message: "Route not found",
-  });
+app.notFound((c) => {
+  return c.json(
+    {
+      success: false,
+      code: ERROR_CODES.NOT_FOUND,
+      message: "Route not found",
+    },
+    404
+  );
 });
 
-// Error handler (must be last)
-app.use(errorHandler);
+// Error handler
+app.onError(errorHandler);
 
 // Start server
-app.listen(config.PORT, function () {
-  logger.info(`Server is running on port ${config.PORT}`);
-});
+serve(
+  {
+    fetch: app.fetch,
+    port: config.PORT,
+  },
+  (info) => {
+    logger.info(`Server is running on port ${info.port}`);
+  }
+);
 
 export default app;

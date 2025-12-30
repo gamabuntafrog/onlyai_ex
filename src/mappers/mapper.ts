@@ -1,4 +1,4 @@
-import { Request } from "express";
+import { Context } from "hono";
 import { z } from "zod";
 import { ValidationError } from "@errors/AppError";
 import { ERROR_CODES } from "@constants/errorCodes";
@@ -7,15 +7,23 @@ class Mapper {
   /**
    * Map request data to DTO using Zod schema for validation and sanitization
    * Combines body, params, and query into one object for validation
-   * @param req - Express request object
+   * @param c - Hono Context object
    * @param schema - Zod validation schema
    */
-  public toDTO<T = unknown>(req: Request, schema: z.ZodType<T>): T {
+  public async toDTO<T = unknown>(
+    c: Context,
+    schema: z.ZodType<T>
+  ): Promise<T> {
+    // Get body, params, and query from Hono Context
+    const body = await c.req.json().catch(() => ({}));
+    const params = c.req.param() || {};
+    const query = c.req.query() || {};
+
     // Combine all request data into one object
     const dataToValidate = {
-      ...req.body,
-      ...req.params,
-      ...req.query,
+      ...body,
+      ...params,
+      ...query,
     };
 
     // Use safeParse to handle errors gracefully
@@ -37,33 +45,7 @@ class Mapper {
       );
     }
 
-    const value = result.data;
-
-    // Update request object with normalized values
-    // Separate back into body, params, and query based on what was in original request
-    const normalizedBody: Record<string, unknown> = {};
-    const normalizedParams: Record<string, unknown> = {};
-    const normalizedQuery: Record<string, unknown> = {};
-
-    // Check original keys to determine where to put normalized values
-    const valueAsRecord = value as Record<string, unknown>;
-    Object.keys(valueAsRecord).forEach(function (key) {
-      const keyValue = valueAsRecord[key];
-      if (key in req.params) {
-        normalizedParams[key] = keyValue;
-      } else if (key in req.query) {
-        normalizedQuery[key] = keyValue;
-      } else {
-        normalizedBody[key] = keyValue;
-      }
-    });
-
-    // Update request object
-    Object.assign(req.body, normalizedBody);
-    Object.assign(req.params, normalizedParams);
-    Object.assign(req.query, normalizedQuery);
-
-    return value;
+    return result.data;
   }
 }
 

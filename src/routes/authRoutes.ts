@@ -1,15 +1,16 @@
-import { Router } from "express";
+import { Hono } from "hono";
+import { Variables } from "@typings/hono";
 import AuthController from "@controllers/authController";
 
 export default function createAuthRoutes(
   authController: AuthController
-): Router {
-  const router = Router();
+): Hono<{ Variables: Variables }> {
+  const app = new Hono<{ Variables: Variables }>();
 
   // Public routes
-  router.post("/register", authController.register.bind(authController));
-  router.post("/login", authController.login.bind(authController));
-  router.post("/refresh", authController.refresh.bind(authController));
+  app.post("/register", (c) => authController.register(c));
+  app.post("/login", (c) => authController.login(c));
+  app.post("/refresh", (c) => authController.refresh(c));
 
-  return router;
+  return app;
 }

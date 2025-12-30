@@ -1,5 +1,4 @@
-import { Response, NextFunction } from "express";
-import { AuthRequest } from "@typings/express";
+import { AuthContext } from "@typings/hono";
 import UserService from "@services/userService";
 import { UnauthorizedError } from "@errors/AppError";
 import { ERROR_CODES } from "@constants/errorCodes";
@@ -10,30 +9,24 @@ class UserController {
   /**
    * Get current authenticated user
    */
-  public async getCurrentUser(
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> {
-    try {
-      if (!req.user?.id) {
-        throw new UnauthorizedError(
-          "User not authenticated",
-          ERROR_CODES.NOT_AUTHENTICATED
-        );
-      }
+  public async getCurrentUser(c: AuthContext): Promise<Response> {
+    const user = c.get("user");
 
-      const user = await this.userService.getUserById(req.user.id);
-
-      res.status(200).json({
-        success: true,
-        data: {
-          user,
-        },
-      });
-    } catch (error) {
-      next(error);
+    if (!user?.id) {
+      throw new UnauthorizedError(
+        "User not authenticated",
+        ERROR_CODES.NOT_AUTHENTICATED
+      );
     }
+
+    const userData = await this.userService.getUserById(user.id);
+
+    return c.json({
+      success: true,
+      data: {
+        user: userData,
+      },
+    });
   }
 }
 

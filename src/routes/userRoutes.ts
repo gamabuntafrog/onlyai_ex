@@ -1,18 +1,15 @@
-import { Router } from "express";
+import { Hono } from "hono";
+import { Variables } from "@typings/hono";
 import UserController from "@controllers/userController";
 import { authenticate } from "@middleware/authMiddleware";
 
 export default function createUserRoutes(
   userController: UserController
-): Router {
-  const router = Router();
+): Hono<{ Variables: Variables }> {
+  const app = new Hono<{ Variables: Variables }>();
 
   // Protected routes
-  router.get(
-    "/me",
-    authenticate,
-    userController.getCurrentUser.bind(userController)
-  );
+  app.get("/me", authenticate, (c) => userController.getCurrentUser(c));
 
-  return router;
+  return app;
 }

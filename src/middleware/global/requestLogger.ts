@@ -1,38 +1,34 @@
-import { Request, Response, NextFunction } from "express";
+import { Context, Next } from "hono";
 import logger from "@utilities/logger";
 
 /**
  * Request logging middleware using pino logger
  * Logs all requests with method, URL, status code, and duration using structured logging
  */
-export function requestLogger(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void {
+export async function requestLogger(c: Context, next: Next): Promise<Response> {
   const startTime = Date.now();
-  const { method, originalUrl } = req;
+  const method = c.req.method;
+  const url = c.req.url;
 
-  // Capture response finish event
-  res.on("finish", () => {
-    const duration = Date.now() - startTime;
-    const { statusCode } = res;
+  await next();
 
-    const logData = {
-      method,
-      url: originalUrl,
-      statusCode,
-      duration: `${duration}ms`,
-    };
+  const duration = Date.now() - startTime;
+  const statusCode = c.res.status;
 
-    if (statusCode >= 500) {
-      logger.error(logData, `${method} ${originalUrl} ${statusCode}`);
-    } else if (statusCode >= 400) {
-      logger.warn(logData, `${method} ${originalUrl} ${statusCode}`);
-    } else {
-      logger.info(logData, `${method} ${originalUrl} ${statusCode}`);
-    }
-  });
+  const logData = {
+    method,
+    url,
+    statusCode,
+    duration: `${duration}ms`,
+  };
 
-  next();
+  if (statusCode >= 500) {
+    logger.error(logData, `${method} ${url} ${statusCode}`);
+  } else if (statusCode >= 400) {
+    logger.warn(logData, `${method} ${url} ${statusCode}`);
+  } else {
+    logger.info(logData, `${method} ${url} ${statusCode}`);
+  }
+
+  return c.res;
 }

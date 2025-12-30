@@ -1,20 +1,10 @@
-import { Request, Response, NextFunction } from "express";
+import { Context } from "hono";
 import { AppError } from "@errors/AppError";
 import config from "@config";
 import logger from "@utilities/logger";
 import { ERROR_CODES } from "@constants/errorCodes";
 
-export function errorHandler(
-  err: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void {
-  // If response has already been sent, delegate to default Express error handler
-  if (res.headersSent) {
-    return next(err);
-  }
-
+export function errorHandler(err: Error, c: Context): Response {
   // Prepare error context for logging
   const errorContext = {
     error: {
@@ -25,10 +15,10 @@ export function errorHandler(
       stack: config.isDevelopment() ? err.stack : undefined,
     },
     request: {
-      url: req.url,
-      method: req.method,
-      ip: req.ip,
-      userAgent: req.get("user-agent"),
+      url: c.req.url,
+      method: c.req.method,
+      ip: c.req.header("x-forwarded-for") || "unknown",
+      userAgent: c.req.header("user-agent") || "unknown",
     },
   };
 
@@ -57,14 +47,13 @@ export function errorHandler(
       ...(config.isDevelopment() && {
         meta: {
           timestamp: err.timestamp.toISOString(),
-          path: req.url,
-          method: req.method,
+          path: c.req.url,
+          method: c.req.method,
         },
       }),
     };
 
-    res.status(err.statusCode).json(errorResponse);
-    return;
+    return c.json(errorResponse, err.statusCode);
   }
 
   // Handle unexpected errors
@@ -79,11 +68,11 @@ export function errorHandler(
         message: err.message,
         stack: err.stack,
         timestamp: new Date().toISOString(),
-        path: req.url,
-        method: req.method,
+        path: c.req.url,
+        method: c.req.method,
       },
     }),
   };
 
-  res.status(500).json(errorResponse);
+  return c.json(errorResponse, 500);
 }

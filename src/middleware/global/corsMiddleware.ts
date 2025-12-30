@@ -1,26 +1,18 @@
-import cors, { CorsOptions } from "cors";
+import { cors } from "hono/cors";
 import config from "@config";
 
 const allowedOrigins = new Set(config.FRONTEND_ORIGINS);
 
-const corsOptions: CorsOptions = {
-  origin(origin, callback) {
+export const corsMiddleware = cors({
+  origin: (origin) => {
     if (!origin) {
-      return callback(null, true);
+      return true;
     }
-
-    if (allowedOrigins.has(origin)) {
-      return callback(null, true);
-    }
-
-    // Disable CORS headers for disallowed origins
-    return callback(null, false);
+    return allowedOrigins.has(origin);
   },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  allowMethods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   maxAge: 86400,
-  optionsSuccessStatus: 204,
-};
-
-export const corsMiddleware = cors(corsOptions);
+  exposeHeaders: [],
+});
