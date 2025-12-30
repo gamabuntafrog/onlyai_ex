@@ -30,6 +30,7 @@ class Config {
 
   // QStash configuration
   public readonly QSTASH_URL: string;
+  public readonly QSTASH_TOKEN: string;
   public readonly QSTASH_CURRENT_SIGNING_KEY: string;
   public readonly QSTASH_NEXT_SIGNING_KEY: string;
 
@@ -77,6 +78,7 @@ class Config {
 
     // QStash
     this.QSTASH_URL = process.env.QSTASH_URL || "https://qstash.upstash.io";
+    this.QSTASH_TOKEN = process.env.QSTASH_TOKEN || "";
     this.QSTASH_CURRENT_SIGNING_KEY =
       process.env.QSTASH_CURRENT_SIGNING_KEY || "";
     this.QSTASH_NEXT_SIGNING_KEY = process.env.QSTASH_NEXT_SIGNING_KEY || "";

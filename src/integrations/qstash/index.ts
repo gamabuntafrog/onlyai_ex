@@ -9,7 +9,7 @@ class QStashClient implements IQStashClient {
 
   constructor() {
     this.client = new Client({
-      token: config.QSTASH_CURRENT_SIGNING_KEY,
+      token: config.QSTASH_TOKEN,
     });
   }
 
@@ -25,6 +25,7 @@ class QStashClient implements IQStashClient {
     delaySeconds: number = 60
   ): Promise<void> {
     try {
+      console.log("payload", payload);
       await this.client.publishJSON({
         url,
         body: payload,
