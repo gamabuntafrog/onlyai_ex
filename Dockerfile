@@ -39,9 +39,8 @@ RUN npm ci --omit=dev && npm cache clean --force
 # Copy compiled code from build stage
 COPY --from=build /usr/src/app/dist ./dist
 
-# Copy migration files for tsx to run migrations
-COPY --from=build /usr/src/app/src/db/migrations ./src/db/migrations
-COPY --from=build /usr/src/app/src/db/utilities/migrations ./src/db/utilities/migrations
+# Copy entire src/ directory for tsx to run migrations (needed for imports)
+COPY --from=build /usr/src/app/src ./src
 
 # Expose port
 EXPOSE 3000
