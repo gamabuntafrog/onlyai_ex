@@ -33,15 +33,10 @@ export const verifyQStashSignature = factory.createMiddleware(
         );
       }
 
-      // Build full URL for signature verification
-      const url = new URL(c.req.url);
-      const fullUrl = `${url.protocol}//${url.host}${url.pathname}${url.search}`;
-
       // Verify signature
       const isValid = await receiver.verify({
         body: rawBody,
         signature,
-        url: fullUrl,
       });
 
       if (!isValid) {
